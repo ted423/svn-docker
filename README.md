@@ -37,3 +37,22 @@ I'm super happy if you want to contribute! I do my best to keep this image updat
 If you find something that can be improved or the solution to some issue, just comment the issue to notify that you will handle it, and then submit a pull request. I will then merge it and publish the updated image in the Docker Hub. :wink:
 
 Thank you! :smile:
+
+
+---
+Mod
+
+Notes 
+
+```
+docker run -d --name svn-server -p 80:80 -p 3690:3690 -v <hostpath>:/home/svn -v <hostpath>:/etc/subversion/  svn-docker-mod:tag
+```
+first create 
+```
+docker exec -t svn-server htpasswd -bc /etc/subversion/passwd <username> <password>
+```
+
+after
+```
+docker exec -t svn-server htpasswd -b /etc/subversion/passwd <username> <password>
+```
