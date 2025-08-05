@@ -1,4 +1,29 @@
-[![Docker Image](https://img.shields.io/badge/docker%20image-available-green.svg)](https://hub.docker.com/r/elleflorio/svn-server/)
+Mod
+
+Notes 
+
+```
+docker run -d --name svn-server -p 80:80 -p 3690:3690 -v <hostpath>:/home/svn -v <hostpath>:/etc/subversion/  svn-docker-mod:tag
+```
+first create 
+```
+docker exec -t svn-server htpasswd -bc /etc/subversion/passwd <username> <password>
+```
+
+after
+```
+docker exec -t svn-server htpasswd -b /etc/subversion/passwd <username> <password>
+```
+suggest mount
+`/etc/subversion/`(svn config)
+
+`/opt/svnadmin/data/config.ini`(svnadmin config)
+
+`/opt/svnadmin/data/userroleassignments.ini`(svnadmin role config) 
+
+
+
+---
 
 # DISCONTINUED
 I am sorry but I could not give this repo the love it deserves. 😞  
@@ -39,20 +64,3 @@ If you find something that can be improved or the solution to some issue, just c
 Thank you! :smile:
 
 
----
-Mod
-
-Notes 
-
-```
-docker run -d --name svn-server -p 80:80 -p 3690:3690 -v <hostpath>:/home/svn -v <hostpath>:/etc/subversion/  svn-docker-mod:tag
-```
-first create 
-```
-docker exec -t svn-server htpasswd -bc /etc/subversion/passwd <username> <password>
-```
-
-after
-```
-docker exec -t svn-server htpasswd -b /etc/subversion/passwd <username> <password>
-```
