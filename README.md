@@ -25,11 +25,7 @@ suggest mount
 
 ---
 
-# DISCONTINUED
-I am sorry but I could not give this repo the love it deserves. 😞  
-So I decided to archive it and make it read only, so people can fork and apply their changes.
 
-Thank you to everyone that contributed! ❤️
 
 # Description
 Lightweight container providing an SVN server, based on **Alpine Linux** and S6 process management (see [here](https://github.com/smebberson/docker-alpine) for details).
@@ -62,5 +58,6 @@ I'm super happy if you want to contribute! I do my best to keep this image updat
 If you find something that can be improved or the solution to some issue, just comment the issue to notify that you will handle it, and then submit a pull request. I will then merge it and publish the updated image in the Docker Hub. :wink:
 
 Thank you! :smile:
+
 
 
