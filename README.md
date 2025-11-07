@@ -15,7 +15,7 @@ after
 docker exec -t svn-server htpasswd -b /etc/subversion/passwd <username> <password>
 ```
 suggest mount
-`/etc/subversion/`(svn config)  (there dav_svn.conf and subversion-access-control in this path, you should manual put them in after you mount)
+`/etc/subversion/`(svn config)  (subversion-access-control in this path, you should manual put in after you mount)
 
 `/opt/svnadmin/data/config.ini`(svnadmin config)
 
