@@ -22,6 +22,9 @@ suggest mount
 `/opt/svnadmin/data/userroleassignments.ini`(svnadmin role config) 
 
 
+If you want do some ldap things, you need see https://github.com/elleFlorio/svn-docker/issues/37 and https://github.com/elleFlorio/svn-docker/issues/24.
+
+you'll probably need to map out the /etc/apache2/conf.d/dav_svn.conf file to modify it. I haven't personally tested this, but from the looks of it, this configuration is completely different from the one in iF.SVNAdmin. It's likely you can't have both configured simultaneously.
 
 ---
 
