@@ -1,5 +1,5 @@
 # Alpine Linux with s6 service management
-FROM alpine:3.22.1
+FROM alpine:3.22.2
 
 	# Install Apache2 and other stuff needed to access svn via WebDav
 	# Install svn
@@ -11,7 +11,7 @@ RUN apk update
 RUN apk upgrade
 RUN apk add --no-cache apache2 apache2-utils apache2-webdav mod_dav_svn s6-overlay &&\
 	apk add --no-cache subversion &&\
-	apk add --no-cache wget unzip php83 php83-apache2 php83-session php83-json php83-ldap &&\
+	apk add --no-cache wget unzip php83 php83-apache2 php83-session php83-json php83-ldap apache2-ldap &&\
 	sed -i 's/;extension=ldap/extension=ldap/' /etc/php83/php.ini &&\
 	apk add --no-cache php83-xml &&\	
 	mkdir -p /run/apache2/ &&\
@@ -40,6 +40,12 @@ RUN chmod a+w /etc/subversion/* && chmod a+w /home/svn && chmod +x /etc/services
 
 # Add WebDav configuration
 ADD dav_svn.conf /etc/apache2/conf.d/dav_svn.conf
+
+# update apache2 default config
+RUN sed -i \
+    -e 's/^\(Timeout\s\+\)[0-9]\+/\112000/' \
+    -e 's/^\(KeepAliveTimeout\s\+\)[0-9]\+/\115/' \
+    "/etc/apache2/conf.d/default.conf"
 
 # Set HOME in non /root folder
 ENV HOME /home
