@@ -1,0 +1,9 @@
+services:
+  svn-server:
+    build: .
+    image: svn-docker-mod:20260807
+    container_name: svn-server
+    ports:
+      - "80:80"
+      - "3690:3690"
+    restart: unless-stopped
