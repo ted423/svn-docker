@@ -17,8 +17,8 @@ RUN apk add --no-cache apache2 apache2-utils apache2-webdav mod_dav_svn s6-overl
 	mkdir -p /run/apache2/ &&\
 	mkdir /home/svn/ &&\
 	mkdir /etc/subversion &&\
-	touch /etc/subversion/passwd &&\
-    wget --no-check-certificate https://github.com/mfreiholz/iF.SVNAdmin/archive/refs/heads/master.zip &&\
+	touch /etc/subversion/passwd
+RUN wget --no-check-certificate https://github.com/ted423/iF.SVNAdmin/archive/refs/heads/master.zip &&\
 	unzip master.zip -d /opt &&\
 	rm master.zip &&\
 	mv /opt/iF.SVNAdmin-master /opt/svnadmin &&\
@@ -26,9 +26,6 @@ RUN apk add --no-cache apache2 apache2-utils apache2-webdav mod_dav_svn s6-overl
 	chmod -R 777 /opt/svnadmin/data 
 
 
-
-# Fixing https://github.com/mfreiholz/iF.SVNAdmin/issues/118
-ADD svnadmin/classes/util/global.func.php /opt/svnadmin/classes/util/global.func.php
 
 # Add services configurations
 ADD apache/ /etc/services.d/apache/
