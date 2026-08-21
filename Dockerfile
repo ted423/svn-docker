@@ -18,14 +18,15 @@ RUN apk add --no-cache apache2 apache2-utils apache2-webdav mod_dav_svn s6-overl
 	mkdir /home/svn/ &&\
 	mkdir /etc/subversion &&\
 	touch /etc/subversion/passwd
-RUN wget --no-check-certificate https://github.com/ted423/iF.SVNAdmin/archive/refs/heads/master.zip &&\
-	unzip master.zip -d /opt &&\
-	rm master.zip &&\
-	mv /opt/iF.SVNAdmin-master /opt/svnadmin &&\
-	ln -s /opt/svnadmin /var/www/localhost/htdocs/svnadmin &&\
-	chmod -R 777 /opt/svnadmin/data 
 
+# If you want to use a local file, please comment out the following line
+RUN wget --no-check-certificate https://github.com/ted423/iF.SVNAdmin/archive/refs/heads/master.zip && unzip master.zip -d /opt && rm master.zip && mv /opt/iF.SVNAdmin-master /opt/svnadmin && ln -s /opt/svnadmin /var/www/localhost/htdocs/svnadmin
 
+# use file local(unzip and put in svnadmin manual)
+# ADD svnadmin /opt/svnadmin
+# RUN	ln -s /opt/svnadmin /var/www/localhost/htdocs/svnadmin
+
+RUN chmod -R 777 /opt/svnadmin/data 
 
 # Add services configurations
 ADD apache/ /etc/services.d/apache/
