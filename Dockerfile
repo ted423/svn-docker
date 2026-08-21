@@ -1,5 +1,5 @@
 # Alpine Linux with s6 service management
-FROM alpine:3.24.1
+FROM alpine:3.24
 
 # Install Apache2 and other stuff needed to access svn via WebDav
 # Install svn
