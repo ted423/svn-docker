@@ -1,32 +1,34 @@
 # Alpine Linux with s6 service management
 FROM alpine:3.24.1
 
-	# Install Apache2 and other stuff needed to access svn via WebDav
-	# Install svn
-	# Installing utilities for SVNADMIN frontend
-	# Create required folders
-	# Create the authentication file for http access
-	# Getting SVNADMIN interface
+# Install Apache2 and other stuff needed to access svn via WebDav
+# Install svn
+# Installing utilities for SVNADMIN frontend
+# Create required folders
+# Create the authentication file for http access
+# Getting SVNADMIN interface
+
 RUN apk update
 RUN apk upgrade
 RUN apk add --no-cache apache2 apache2-utils apache2-webdav mod_dav_svn s6-overlay &&\
-	apk add --no-cache subversion &&\
-	apk add --no-cache wget unzip php83 php83-apache2 php83-session php83-json php83-ldap apache2-ldap &&\
-	sed -i 's/;extension=ldap/extension=ldap/' /etc/php83/php.ini &&\
-	apk add --no-cache php83-xml &&\	
-	mkdir -p /run/apache2/ &&\
-	mkdir /home/svn/ &&\
-	mkdir /etc/subversion &&\
-	touch /etc/subversion/passwd
+    apk add --no-cache subversion &&\
+    apk add --no-cache wget unzip php83 php83-apache2 php83-session php83-json php83-ldap apache2-ldap &&\
+    sed -i 's/;extension=ldap/extension=ldap/' /etc/php83/php.ini &&\
+    apk add --no-cache php83-xml &&\    
+    mkdir -p /run/apache2/ &&\
+    mkdir /home/svn/ &&\
+    mkdir /etc/subversion &&\
+    touch /etc/subversion/passwd
 
 # If you want to use a local file, please comment out the following line
-RUN wget --no-check-certificate https://github.com/ted423/iF.SVNAdmin/archive/refs/heads/master.zip && unzip master.zip -d /opt && rm master.zip && mv /opt/iF.SVNAdmin-master /opt/svnadmin && ln -s /opt/svnadmin /var/www/localhost/htdocs/svnadmin
+RUN wget --no-check-certificate https://github.com/ted423/iF.SVNAdmin/archive/refs/heads/master.zip && unzip master.zip -d /opt && rm master.zip && mv /opt/iF.SVNAdmin-master /opt/svnadmin
 
 # use file local(unzip and put in svnadmin manual)
 # ADD svnadmin /opt/svnadmin
-# RUN	ln -s /opt/svnadmin /var/www/localhost/htdocs/svnadmin
+ 
 
-RUN chmod -R 777 /opt/svnadmin/data 
+RUN ln -s /opt/svnadmin /var/www/localhost/htdocs/svnadmin &&\
+    chmod -R 777 /opt/svnadmin/data 
 
 # Add services configurations
 ADD apache/ /etc/services.d/apache/
