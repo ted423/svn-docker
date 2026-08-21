@@ -1,7 +1,7 @@
 services:
   svn-server:
     build: .
-    image: svn-docker-mod:20260807
+    image: svn-docker-mod:20260821
     container_name: svn-server
     ports:
       - "80:80"
