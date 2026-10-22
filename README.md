@@ -9,6 +9,9 @@
 >   主要差异：Alpine 3.24 基础镜像、PHP 8.3 + iF.SVNAdmin、LDAP 组件、中英双语文档、CI 冒烟测试。
 > - 镜像标签 / Image tag: `svn-docker-mod:<tag>`（例如 / e.g. `20261022`）
 >
+> **⚠️ LDAP 提醒 / LDAP warning**：LDAP 相关功能尚不完善，已知问题较多，不建议直接用于生产环境，详见下方 LDAP 章节。
+> LDAP support is incomplete and has many known issues. Do not use it in production without thorough testing; see the LDAP section below.
+>
 > 使用前请先看下面的 Notes；上游文档不一定适用。
 > Read the Notes below first; upstream documentation may not apply.
 
@@ -50,7 +53,7 @@ docker run -d --name svn-server \
 | Mounts / 建议挂载 | `/etc/subversion/`（svn config，`subversion-access-control` 需在挂载后手动放回 / put the ACL back manually after mounting）<br>`/opt/svnadmin/data/config.ini`（SVNADMIN config）<br>`/opt/svnadmin/data/userroleassignments.ini`（SVNADMIN roles） |
 | Ports / 端口 | `80` WebDAV, `3690` `svn://` |
 | ACL / 权限 | `/etc/subversion/subversion-access-control`，默认只读 / read-only by default |
-| LDAP | Extra setup required / 需额外配置：<https://github.com/elleFlorio/svn-docker/issues/37>, <https://github.com/elleFlorio/svn-docker/issues/24> |
+| LDAP | Extra setup required and known to be problematic / 需额外配置且已知问题较多：<https://github.com/elleFlorio/svn-docker/issues/37>, <https://github.com/elleFlorio/svn-docker/issues/24> |
 | `dav_svn.conf` | Rebuild or mount to change it; may conflict with the SVNADMIN config.<br>修改需重建镜像或挂载覆盖；与 SVNADMIN 自带配置可能冲突。 |
 
 ---
@@ -267,7 +270,11 @@ Or edit the file on the host and `docker cp` it in. / 或者把宿主机上的�
 
 ---
 
-## LDAP
+## LDAP (experimental / 实验性)
+
+> **⚠️ Warning / 警告**：LDAP 相关功能未经充分验证，已知存在较多问题（认证失败、扩展未生效、与 WebDAV 配置冲突等）。不建议直接用于生产环境，启用前请自行完整测试。可先查阅下方上游 issue。
+>
+> LDAP support is not fully verified and has many known issues (authentication failures, extensions not taking effect, conflicts with the WebDAV configuration, etc.). Do not use it in production without thorough testing. Check the upstream issues below first.
 
 The image installs and enables the LDAP components:
 
@@ -326,21 +333,5 @@ docker rm -f svn-ci
 | `svn://` connection refused<br>`svn://` 连接被拒 | Port 3690 is not published, or the s6 `subversion` service is not running.<br>端口未映射，或 s6 服务未启动。 |
 | Port 80 is taken<br>80 端口被占用 | Change the compose mapping to `8080:80`.<br>改 compose 映射为 `8080:80`。 |
 | `dav_svn.conf` changes have no effect<br>改配置不生效 | The file is baked into the image; rebuild or mount it.<br>该文件在镜像里，需要重建或挂载。 |
-
-Troubleshooting commands / 排障命令：
-
-```bash
-docker logs --tail 100 svn-server
-docker exec -it svn-server sh
-docker exec -it svn-server svn --version
-docker exec -it svn-server httpd -t
-```
-
----
-
-## Upstream / 上游与贡献
-
-- Upstream / 上游项目：<https://github.com/elleFlorio/svn-docker>
-- This repo / 本仓库：<https://github.com/ted423/svn-docker>
 
 Issues and pull requests are welcome. / 欢迎提 issue 或 PR。
