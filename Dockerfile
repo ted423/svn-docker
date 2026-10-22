@@ -12,9 +12,9 @@ RUN apk update
 RUN apk upgrade
 RUN apk add --no-cache apache2 apache2-utils apache2-webdav mod_dav_svn s6-overlay &&\
     apk add --no-cache subversion &&\
-    apk add --no-cache wget unzip php83 php83-apache2 php83-session php83-json php83-ldap apache2-ldap &&\
+    apk add --no-cache wget unzip php83 php83-apache2 php83-session php83-ldap apache2-ldap &&\
     sed -i 's/;extension=ldap/extension=ldap/' /etc/php83/php.ini &&\
-    apk add --no-cache php83-xml &&\    
+    apk add --no-cache php83-xml &&\
     mkdir -p /run/apache2/ &&\
     mkdir /home/svn/ &&\
     mkdir /etc/subversion &&\
