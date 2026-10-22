@@ -60,7 +60,10 @@ printf '%s\n' "$headers" | grep -qi '^WWW-Authenticate: Basic' ||
 pass "HTTP Basic authentication is enforced"
 
 step "Creating test repository and user inside the container"
-docker exec "$CONTAINER" svnadmin create "/home/svn/${REPO}"
+# Apache serves WebDAV commits as the `apache` user, so the repository must be
+# owned by it. Plain `docker exec` runs as root and would produce root-owned
+# files that Apache cannot write (svn: E000013 txn-current-lock).
+docker exec --user apache "$CONTAINER" svnadmin create "/home/svn/${REPO}"
 docker exec "$CONTAINER" htpasswd -bc /etc/subversion/passwd "$SVN_USER" "$SVN_PASSWORD"
 pass "repository /home/svn/${REPO} and user ${SVN_USER} created"
 

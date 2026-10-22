@@ -59,6 +59,43 @@ docker run -d --name svn-server \
 `/home/svn` 存储仓库，可使用 bind mount 或 named volume。  
 `/etc/subversion` 存储 Subversion 配置，`/opt/svnadmin/data` 存储 SVNADMIN 配置，建议使用 named volume。
 
+### Permissions / 权限
+
+镜像内 `/home/svn` 默认属于 `apache:apache`，权限为 `2775`（setgid）。未挂载 `/home/svn` 时，以 `apache` 用户创建仓库、通过 HTTP/WebDAV 提交均可直接工作。
+
+**Bind mount 会覆盖镜像内的属主与权限**，必须在宿主机上把挂载目录交给容器内的 `apache` 用户：
+
+```bash
+# 查询容器内 apache 用户的 UID/GID
+docker exec svn-server id -u apache
+docker exec svn-server id -g apache
+
+# 在宿主机上设置（uid/gid 以实际输出为准，Alpine 通常为 100 和 101）
+sudo chown -R <uid>:<gid> <hostpath>
+sudo find <hostpath> -type d -exec chmod 2775 {} +
+sudo find <hostpath> -type f -exec chmod 664 {} +
+```
+
+Named volume 无需额外操作，首次创建时会继承镜像内 `/home/svn` 的属主与权限。
+
+> **创建仓库的属主 / Repository ownership**
+>
+> `docker exec` 默认以 `root` 运行。由 `root` 创建的仓库（`root:root`、`755`）无法被以 `apache` 用户运行的 WebDAV 写入，提交时会报：
+>
+> ```
+> svn: E000013: Can't open file '.../db/txn-current-lock': Permission denied
+> ```
+>
+> 请以 `apache` 用户创建仓库，或在创建后修正属主：
+>
+> ```bash
+> docker exec --user apache svn-server svnadmin create /home/svn/<repo>
+> # 或
+> docker exec svn-server chown -R apache:apache /home/svn/<repo>
+> ```
+
+挂载 `/etc/subversion/` 时，该目录需可被 `apache` 用户遍历，`passwd` 与 `subversion-access-control` 需可被读取（使用 SVNADMIN 时还需可写）。
+
 ---
 
 ## Configuration / 配置

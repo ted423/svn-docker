@@ -15,9 +15,10 @@ RUN apk add --no-cache apache2 apache2-utils apache2-webdav mod_dav_svn s6-overl
     apk add --no-cache wget unzip php83 php83-apache2 php83-session php83-ldap apache2-ldap &&\
     sed -i 's/;extension=ldap/extension=ldap/' /etc/php83/php.ini &&\
     apk add --no-cache php83-xml &&\
-    mkdir -p /run/apache2/ &&\
+    mkdir -p /run/apache2/ /etc/subversion &&\
     mkdir /home/svn/ &&\
-    mkdir /etc/subversion &&\
+    chown apache:apache /home/svn &&\
+    chmod 2775 /home/svn &&\
     touch /etc/subversion/passwd
 
 # If you want to use a local file, please comment out the following line
@@ -36,7 +37,7 @@ ADD subversion/ /etc/services.d/subversion/
 
 # Add SVNAuth file
 ADD subversion-access-control /etc/subversion/subversion-access-control
-RUN chmod a+w /etc/subversion/* && chmod a+w /home/svn && chmod +x /etc/services.d/apache/run && chmod +x /etc/services.d/subversion/run
+RUN chmod a+w /etc/subversion/* && chmod +x /etc/services.d/apache/run && chmod +x /etc/services.d/subversion/run
 
 # Add WebDav configuration
 ADD dav_svn.conf /etc/apache2/conf.d/dav_svn.conf
