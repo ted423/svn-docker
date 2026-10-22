@@ -24,8 +24,8 @@
 
 ## Description / 描述
 
-Lightweight container providing an SVN server, based on **Alpine Linux** and S6 process management (see [here](https://github.com/smebberson/docker-alpine) for details).  
-基于 **Alpine Linux** 和 S6 进程管理的轻量级 SVN 服务器容器（详情见 [here](https://github.com/smebberson/docker-alpine)）。
+Lightweight container providing an SVN server, based on **Alpine Linux** and [s6-overlay](https://github.com/just-containers/s6-overlay) process management.  
+基于 **Alpine Linux** 和 [s6-overlay](https://github.com/just-containers/s6-overlay) 进程管理的轻量级 SVN 服务器容器。
 
 Access is available via **WebDAV** (`http://`) and the **custom protocol** (`svn://`).  
 支持通过 **WebDAV**（`http://`）和 **自定义协议**（`svn://`）访问。
