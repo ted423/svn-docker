@@ -1,3 +1,5 @@
+[![CI](https://github.com/ted423/svn-docker/actions/workflows/ci.yml/badge.svg)](https://github.com/ted423/svn-docker/actions/workflows/ci.yml)
+
 Mod
 
 Notes 
