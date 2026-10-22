@@ -25,7 +25,7 @@ jobs:
       - name: Resolve version from docker-compose.yml
         run: |
           set -euo pipefail
-          ref="$(awk '/^[[:space:]]*image:/{print $2; exit}' docker-compose.yml)"
+          ref="$(awk '/^[[:space:]]*image:/{print $2; exit}' docker-compose.yml | tr -d '\r')"
           version="${ref##*:}"
           if [ -z "$ref" ] || [ "$version" = "$ref" ]; then
             echo "::error::No image tag found in docker-compose.yml (got '${ref}')"
