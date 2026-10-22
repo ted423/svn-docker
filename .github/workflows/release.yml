@@ -1,0 +1,150 @@
+name: Release
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    name: Build & publish release assets
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Resolve version from docker-compose.yml
+        run: |
+          set -euo pipefail
+          ref="$(awk '/^[[:space:]]*image:/{print $2; exit}' docker-compose.yml)"
+          version="${ref##*:}"
+          if [ -z "$ref" ] || [ "$version" = "$ref" ]; then
+            echo "::error::No image tag found in docker-compose.yml (got '${ref}')"
+            exit 1
+          fi
+          case "$version" in
+              *[!0-9A-Za-z._-]*)
+                  echo "::error::Unsupported version '${version}' in docker-compose.yml"
+                  exit 1
+                  ;;
+          esac
+          echo "IMAGE_NAME=${ref%:*}" >> "$GITHUB_ENV"
+          echo "VERSION=${version}" >> "$GITHUB_ENV"
+          echo "Resolved ${ref%:*} version ${version}"
+
+      - name: Verify release tag matches compose version
+        run: |
+          set -euo pipefail
+          if [ "${GITHUB_EVENT_NAME}" = "release" ]; then
+            tag="${GITHUB_REF_NAME}"
+            if [ "${tag#v}" != "${VERSION}" ]; then
+              echo "::error::Release tag '${tag}' does not match image tag '${VERSION}' in docker-compose.yml."
+              echo "Update docker-compose.yml before publishing the release."
+              exit 1
+            fi
+            echo "RELEASE_TAG=${tag}" >> "$GITHUB_ENV"
+          else
+            echo "RELEASE_TAG=${VERSION}" >> "$GITHUB_ENV"
+          fi
+          echo "Release tag: $(grep '^RELEASE_TAG=' "$GITHUB_ENV" | tail -n1 | cut -d= -f2-)"
+
+      - name: Prepare output directory
+        run: mkdir -p dist
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Buildx
+        uses: docker/setup-buildx-action@v4
+
+      - name: Validate docker-compose.yml
+        run: docker compose config --quiet
+
+      - name: Build linux/amd64 image
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          file: ./Dockerfile
+          platforms: linux/amd64
+          load: true
+          tags: ${{ env.IMAGE_NAME }}:${{ env.VERSION }}
+          cache-from: type=gha,scope=svn-docker
+          cache-to: type=gha,mode=max,scope=svn-docker
+
+      - name: Start container
+        run: |
+          docker run --detach --name svn-release-ci \
+            --publish 8080:80 \
+            --publish 3690:3690 \
+            "${IMAGE_NAME}:${VERSION}"
+
+      - name: Install Subversion client
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends subversion
+
+      - name: Run smoke test
+        env:
+          CONTAINER: svn-release-ci
+          BASE_URL: http://127.0.0.1:8080
+          SVN_URL: svn://127.0.0.1:3690
+        run: bash .github/scripts/smoke-test.sh
+
+      - name: Show container logs
+        if: failure()
+        run: docker logs svn-release-ci || true
+
+      - name: Remove container
+        if: always()
+        run: docker rm -f svn-release-ci || true
+
+      - name: Save linux/amd64 image archive
+        run: |
+          set -euo pipefail
+          docker save "${IMAGE_NAME}:${VERSION}" |
+            gzip -6 > "dist/${IMAGE_NAME}-${VERSION}-amd64.tar.gz"
+
+      - name: Build linux/arm64 image archive
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          file: ./Dockerfile
+          platforms: linux/arm64
+          outputs: type=docker,dest=dist/${{ env.IMAGE_NAME }}-${{ env.VERSION }}-arm64.tar
+          tags: ${{ env.IMAGE_NAME }}:${{ env.VERSION }}
+          cache-from: type=gha,scope=svn-docker
+
+      - name: Compress arm64 archive and generate checksums
+        run: |
+          set -euo pipefail
+          gzip -6 "dist/${IMAGE_NAME}-${VERSION}-arm64.tar"
+          (cd dist && sha256sum ./*.tar.gz > SHA256SUMS && cat SHA256SUMS)
+
+      - name: Create GitHub Release
+        if: github.event_name == 'workflow_dispatch'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          if gh release view "${RELEASE_TAG}" >/dev/null 2>&1; then
+            echo "Release ${RELEASE_TAG} already exists; reusing it."
+          else
+            gh release create "${RELEASE_TAG}" \
+              --target "${GITHUB_SHA}" \
+              --title "${RELEASE_TAG}" \
+              --generate-notes
+          fi
+
+      - name: Upload release assets
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release upload "${RELEASE_TAG}" dist/*.tar.gz dist/SHA256SUMS --clobber
