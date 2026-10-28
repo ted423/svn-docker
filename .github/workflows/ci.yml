@@ -70,3 +70,29 @@ jobs:
       - name: Remove container
         if: always()
         run: docker rm -f svn-ci || true
+
+      - name: Package image for branch build
+        if: github.event_name == 'push' && github.ref_type == 'branch' && github.ref != format('refs/heads/{0}', github.event.repository.default_branch)
+        run: |
+          set -euo pipefail
+          ref="$(awk '/^[[:space:]]*image:/{print $2; exit}' docker-compose.yml | tr -d '\r')"
+          image="${ref%:*}"
+          version="${ref##*:}"
+          branch="${GITHUB_REF_NAME//\//-}"
+          branch="${branch//[^0-9A-Za-z._-]/-}"
+          branch="${branch:0:60}"
+          tag="${image}:${version}-${branch}"
+          mkdir -p dist
+          docker tag "$IMAGE" "$tag"
+          docker save "$tag" | gzip -6 > "dist/${image}-${version}-${branch}-amd64.tar.gz"
+          (cd dist && sha256sum ./*.tar.gz > SHA256SUMS)
+          echo "ARTIFACT_NAME=${image}-${version}-${branch}-amd64" >> "$GITHUB_ENV"
+          echo "Packaged ${tag}"
+
+      - name: Upload branch build artifact
+        if: github.event_name == 'push' && github.ref_type == 'branch' && github.ref != format('refs/heads/{0}', github.event.repository.default_branch)
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.ARTIFACT_NAME }}
+          path: dist/
+          retention-days: 30
